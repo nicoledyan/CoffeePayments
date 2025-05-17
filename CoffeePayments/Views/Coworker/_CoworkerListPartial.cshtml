@@ -1,0 +1,29 @@
+@model List<CoffeePaymentSystem.Models.Coworker>
+
+<table class="table" id="coworker-table">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Favorite Drink</th>
+        <th>Cost ($)</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach(var c in Model)
+    {
+        <tr id="coworker-row-@c.Id">
+            <td>@c.Name</td>
+            <td>@c.FavoriteDrink</td>
+            <td>@c.DrinkCost.ToString("F2")</td>
+            <td style="text-align: center;">
+                <button type="button" class="btn btn-sm btn-danger" title="Remove coworker"
+                        onclick="deleteCoworker(@c.Id, '@c.Name')"
+                        style="border:none; background:none; padding:0;">
+                    <i class="fa-solid fa-trash-can" style="font-size: 20px; color: darkred;"></i>
+                </button>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
