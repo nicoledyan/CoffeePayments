@@ -1,0 +1,161 @@
+@model CoffeeIndexViewModel
+@{
+    Layout = "_Layout";
+}
+
+<div class="container">
+
+    <h1 class="page-title">Coffee Payment System <i class="fas fa-coffee"></i></h1>
+
+    <!-- Next Payer Card -->
+    @{
+        bool hasNextPayer = @Model.NextPayer != null;
+    }
+    <section class="card next-payer-card">
+        <h2 class="section-title">Next to Pay</h2>
+        <p class="next-payer-name">@Model.NextPayer?.Name</p>
+        
+        <form asp-action="AddPayment" method="post" onsubmit="return confirmPay();" class="payment-form">
+            <input type="hidden" name="id" value="@Model.NextPayer?.Id" />
+            <button type="submit" class="btn btn-primary btn-pay" @(hasNextPayer ? "" : "disabled")><i class="fas fa-coffee"></i> Mark as Paid</button>
+        </form>
+        
+        <form asp-action="SkipPerson" method="post" onsubmit="return confirmSkip();" class="skip-form">
+            <input type="hidden" name="id" value="@Model.NextPayer?.Id" />
+            <button type="submit" class="btn btn-secondary btn-skip" @(hasNextPayer ? "" : "disabled")>
+                <i class="fa-solid fa-forward"></i> Skip @Model.NextPayer?.Name (One Time)
+            </button>
+        </form>
+    </section>
+
+    <!-- Coworkers & Their Drinks -->
+    <section class="card">
+        <h2 class="section-title">Coworkers & Their Drinks</h2>
+        <div id="coworker-list">
+            @await Html.PartialAsync("~/Views/Coworker/_CoworkerListPartial.cshtml", Model.Coworkers)
+        </div>
+        <!-- Add Coworker Button -->
+        <button class="btn btn-success mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#addCoworkerForm">
+            ➕ Add Coworker
+        </button>
+
+        <div class="collapse" id="addCoworkerForm">
+            <form id="add-coworker-form" class="card p-3">
+                <div class="mb-2">
+                    <label for="Name" class="form-label">Name</label>
+                    <input type="text" id="coworker-name" name="Name" class="form-control" required/>
+                </div>
+                <div class="mb-2">
+                    <label for="FavoriteDrink" class="form-label">Favorite Drink</label>
+                    <input type="text" id="favorite-drink" name="FavoriteDrink" class="form-control" required/>
+                </div>
+                <div class="mb-2">
+                    <label for="DrinkCost" class="form-label">Drink Cost ($)</label>
+                    <input type="number" id="drink-cost" name="DrinkCost" class="form-control" step="0.01" required/>
+                </div>
+                <div class="mb-2">
+                    <label for="JoinDate" class="form-label">Join Date</label>
+                    <input type="date" id="join-date"  name="JoinDate" class="form-control"
+                           value="@DateTime.Now.ToString("yyyy-MM-dd")" required/>
+                </div>
+                <button type="submit" class="btn btn-primary">Add</button>
+            </form>
+        </div>
+
+    </section>
+
+    <!-- Payment History -->
+    <section class="card">
+        <h2 class="section-title">Payment History</h2>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Coworker</th>
+                <th>Paid / Skipped</th>
+                <th>Amount Paid ($)</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach(var h in @Model.History.OrderByDescending(x => x.DatePaid))
+            {
+                <tr>
+                    <td>@h.DatePaid.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@h.Payer.Name</td>
+                    <td style="text-align: center;">
+                        @if (@h.IsSkip)
+                        {
+                            <span class="badge bg-secondary">Skipped</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Paid</span>
+                        }
+                    </td>
+                    <td>
+                        @if (@h.IsSkip)
+                        {
+                            <span>-</span>
+                        }
+                        else
+                        {
+                            @h.AmountPaid.ToString("F2")
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center">
+                @{
+                    int currentPage = Model.CurrentPage;
+                    int totalPages = Model.TotalPages;
+                }
+
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" href="?page=@(currentPage - 1)" tabindex="-1">Previous</a>
+                </li>
+
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <a class="page-link" href="?page=@i">@i</a>
+                    </li>
+                }
+
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link" href="?page=@(currentPage + 1)">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </section>
+
+    <!-- Fairness Summary -->
+    <section class="card">
+        <h2 class="section-title">Fairness Summary</h2>
+        <table class="table fairness-summary-table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Favorite Drink</th>
+                <th>Drink Cost ($)</th>
+                <th>Balance ($)</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var s in Model.Summary)
+            {
+                <tr>
+                    <td>@s.Name</td>
+                    <td>@s.FavoriteDrink</td>
+                    <td>@s.DrinkCost.ToString("F2")</td>
+                    <td class="balance-cell @(s.Balance < 0 ? "negative" : s.Balance > 0 ? "positive" : "neutral")">
+                        @s.Balance.ToString("F2")
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </section>
+</div>
