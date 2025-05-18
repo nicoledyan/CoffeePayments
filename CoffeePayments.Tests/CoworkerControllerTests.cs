@@ -10,7 +10,7 @@ namespace CoffeePayments.Tests
     {
 
         [Fact]
-        public void AddCoworker_ValidModel_AddsCoworkerAndRedirects()
+        public void AddCoworker_ValidModel_AddsCoworkerAndRedirectsToPartial()
         {
             // Arrange
             var coworkerService = new Mock<ICoworkerService>();
@@ -34,7 +34,7 @@ namespace CoffeePayments.Tests
             Assert.Equal("_CoworkerListPartial", redirect.ViewName);}
 
         [Fact]
-        public void AddCoworker_InvalidModel_ReturnsView()
+        public void AddCoworker_InvalidModel_ReturnsBadRequest()
         {
             // Arrange
             var coworkerService = new Mock<ICoworkerService>();
@@ -53,7 +53,7 @@ namespace CoffeePayments.Tests
         }
 
         [Fact]
-        public void RemoveCoworker_Successful_RemovesAndRedirects()
+        public void RemoveCoworker_Successful_RemovesAndRedirectsToPartial()
         {
             // Arrange
             var coworkerService = new Mock<ICoworkerService>();

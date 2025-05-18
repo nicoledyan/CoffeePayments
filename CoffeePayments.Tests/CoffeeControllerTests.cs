@@ -57,7 +57,7 @@ namespace CoffeePayments.Tests
         }
 
         [Fact]
-        public void AddPayment_ValidCoworker_CallsAddPaymentAndRedirects()
+        public void AddPayment_ValidCoworker_CallsAddPaymentAndUpdateBalancesAndRedirects()
         {
             // Arrange
             var coworker = new Coworker { Id = 1, Name = "Alice" };
@@ -76,12 +76,13 @@ namespace CoffeePayments.Tests
 
             // Assert
             paymentHistoryService.Verify(x => x.AddPayment(1), Times.Once);
+            coworkerService.Verify(x => x.UpdateBalancesOnPayment(1), Times.Once);
             var redirect = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("Index", redirect.ActionName);
         }
 
         [Fact]
-        public void AddPayment_InvalidCoworker_DoesNotCallAddPayment()
+        public void AddPayment_InvalidCoworker_DoesNotCallAddPaymentOrUpdateBalances()
         {
             // Arrange
             var paymentCalculator = new Mock<IPaymentCalculator>();
@@ -99,6 +100,7 @@ namespace CoffeePayments.Tests
 
             // Assert
             paymentHistoryService.Verify(x => x.AddPayment(It.IsAny<int>()), Times.Never);
+            coworkerService.Verify(x => x.UpdateBalancesOnPayment(It.IsAny<int>()), Times.Never);
             var redirect = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("Index", redirect.ActionName);
         }
